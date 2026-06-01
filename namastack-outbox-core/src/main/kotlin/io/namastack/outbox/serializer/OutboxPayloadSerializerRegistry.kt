@@ -1,24 +1,44 @@
 package io.namastack.outbox.serializer
 
 import io.namastack.outbox.OutboxPayloadSerializer
+import io.namastack.outbox.annotation.OutboxEvent
+import org.springframework.core.annotation.AnnotationUtils
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Routes payload classes to their configured [OutboxPayloadSerializer], falling back to the
- * global default when no per-type serializer is registered.
+ * global default when no per-type serializer is declared.
  *
- * The mapping is built at application startup by [OutboxSerializerRegistrar] and is immutable
- * after construction. A [ConcurrentHashMap] cache avoids repeated map lookups for hot paths.
+ * Resolution is lazy: on first call for a given class, the [OutboxEvent.serializer] attribute
+ * is read and the serializer is instantiated via its public no-arg constructor. The result is
+ * cached permanently so reflection only happens once per payload type.
  *
- * Context maps (the `context` field on outbox records) are always serialized with [default]
- * because the context map type (`Map<String, String>`) carries no `@OutboxEvent` annotation.
+ * Context maps (`Map<String, String>`) carry no [OutboxEvent] annotation and always use [default].
  */
 class OutboxPayloadSerializerRegistry(
     val default: OutboxPayloadSerializer,
-    private val serializersByType: Map<Class<*>, OutboxPayloadSerializer>,
 ) {
     private val cache = ConcurrentHashMap<Class<*>, OutboxPayloadSerializer>()
 
-    fun forType(clazz: Class<*>): OutboxPayloadSerializer =
-        cache.getOrPut(clazz) { serializersByType[clazz] ?: default }
+    fun forType(clazz: Class<*>): OutboxPayloadSerializer = cache.computeIfAbsent(clazz) { resolve(it) }
+
+    private fun resolve(clazz: Class<*>): OutboxPayloadSerializer {
+        val serializerClass =
+            AnnotationUtils
+                .findAnnotation(clazz, OutboxEvent::class.java)
+                ?.serializer
+                ?.takeIf { it != OutboxPayloadSerializer::class }
+                ?: return default
+
+        return try {
+            @Suppress("UNCHECKED_CAST")
+            serializerClass.java.getDeclaredConstructor().newInstance() as OutboxPayloadSerializer
+        } catch (e: Exception) {
+            throw IllegalStateException(
+                "@OutboxEvent on ${clazz.name} specifies serializer ${serializerClass.qualifiedName} " +
+                    "but it could not be instantiated. Ensure it has a public no-arg constructor.",
+                e,
+            )
+        }
+    }
 }

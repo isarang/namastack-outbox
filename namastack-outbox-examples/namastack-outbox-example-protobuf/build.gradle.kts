@@ -31,7 +31,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation("io.namastack:namastack-outbox-starter-jpa:1.6.0-SNAPSHOT")
     implementation("com.google.protobuf:protobuf-java:4.35.0")
-    implementation("tools.jackson.module:jackson-module-kotlin")
     runtimeOnly("com.h2database:h2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

@@ -47,7 +47,7 @@ class MongoOutboxRecordRepositoryTest {
         val serializer = JacksonOutboxPayloadSerializer(mapper)
         val registry =
             io.namastack.outbox.serializer
-                .OutboxPayloadSerializerRegistry(serializer, emptyMap())
+                .OutboxPayloadSerializerRegistry(serializer)
         val entityMapper =
             MongoOutboxRecordEntityMapper(registry, OutboxRecordTypeResolver(OutboxEventTypeRegistry()))
 

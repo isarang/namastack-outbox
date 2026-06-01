@@ -13,7 +13,7 @@ import java.util.UUID
 
 class MongoOutboxRecordEntityMapperTest {
     private val serializer = mockk<OutboxPayloadSerializer>()
-    private val registry = OutboxPayloadSerializerRegistry(serializer, emptyMap())
+    private val registry = OutboxPayloadSerializerRegistry(serializer)
     private val mapper = MongoOutboxRecordEntityMapper(registry, OutboxRecordTypeResolver(OutboxEventTypeRegistry()))
 
     @Test

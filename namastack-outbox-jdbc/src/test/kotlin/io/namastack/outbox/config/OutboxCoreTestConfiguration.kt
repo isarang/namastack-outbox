@@ -18,5 +18,5 @@ class OutboxCoreTestConfiguration {
 
     @Bean
     fun outboxPayloadSerializerRegistry(serializer: OutboxPayloadSerializer): OutboxPayloadSerializerRegistry =
-        OutboxPayloadSerializerRegistry(serializer, emptyMap())
+        OutboxPayloadSerializerRegistry(serializer)
 }

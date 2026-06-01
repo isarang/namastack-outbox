@@ -17,7 +17,7 @@ import java.util.UUID
 class OutboxRecordEntityMapperTest {
     private val innerJsonMapper = jsonMapper { addModule(kotlinModule()) }
     private val serializer = JacksonOutboxPayloadSerializer(innerJsonMapper)
-    private val registry = OutboxPayloadSerializerRegistry(serializer, emptyMap())
+    private val registry = OutboxPayloadSerializerRegistry(serializer)
     private val mapper = OutboxRecordEntityMapper(registry, OutboxRecordTypeResolver(OutboxEventTypeRegistry()))
 
     data class OrderCreatedEvent(
